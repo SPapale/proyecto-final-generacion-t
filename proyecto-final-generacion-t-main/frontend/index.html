@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turnero de Peluquería - Generación T</title>
+    <style>
+        :root {
+            --primary: #18181b;
+            --accent: #2563eb;
+            --bg: #f4f4f5;
+            --card-bg: #ffffff;
+            --text: #27272a;
+            --border: #e4e4e7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
+        }
+
+        .success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .appointments-section {
+            margin-top: 30px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .appointments-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        ul {
+            list-style: none;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        li {
+            padding: 10px;
+            background: #fafafa;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75srem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>✂️ Turnero Peluquería</h2>
+        
+        <form id="appointmentForm">
+            <div class="form-group">
+                <label for="serviceSelect">Seleccionar Servicio:</label>
+                <select id="serviceSelect" required>
+                    <!-- Cargado dinámicamente -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="datetimeInput">Fecha y Hora:</label>
+                <input type="datetime-local" id="datetimeInput" required>
+            </div>
+
+            <button type="submit">Reservar Turno</button>
+        </form>
+
+        <div id="message"></div>
+
+        <div class="appointments-section">
+            <h3>📅 Turnos Recientes</h3>
+            <ul id="appointmentsList">
+                <!-- Cargado dinámicamente -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // En producción cambiar por la URL pública de tu backend en Render
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000' 
+            : 'https://turnero-backend-7wpl.onrender.com';
+
+        const serviceSelect = document.getElementById('serviceSelect');
+        const datetimeInput = document.getElementById('datetimeInput');
+        const appointmentForm = document.getElementById('appointmentForm');
+        const messageDiv = document.getElementById('message');
+        const appointmentsList = document.getElementById('appointmentsList');
+
+        // Cargar servicios al iniciar
+        async function loadServices() {
+            try {
+                const res = await fetch(`${API_URL}/api/appointments/services`);
+                const services = await res.json();
+                serviceSelect.innerHTML = services.map(s => 
+                    `<option value="${s.id}">${s.nombre} - $${s.precio} (${s.duracion_minutos} min)</option>`
+                ).join('');
+            } catch (err) {
+                showMsg('Error al conectar con el servidor', 'error');
+            }
+        }
+
+        // Cargar turnos existentes
+        async function loadAppointments() {
+            try {
+                const res = await fetch(`${API_URL}/api/appointments`);
+                const appointments = await res.json();
+                appointmentsList.innerHTML = appointments.map(a => `
+                    <li>
+                        <span><strong>${a.servicio}</strong> (${new Date(a.fecha_hora_inicio).toLocaleString()})</span>
+                        <span class="badge">${a.estado}</span>
+                    </li>
+                `).join('') || '<p style="color:#71717a; font-size:0.85rem;">No hay turnos registrados.</p>';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Enviar formulario de reserva
+        appointmentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            messageDiv.style.display = 'none';
+
+            const payload = {
+                user_id: 1, // Usuario por defecto para la demo
+                service_id: parseInt(serviceSelect.value),
+                fecha_hora_inicio: datetimeInput.value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/api/appointments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showMsg('¡Turno reservado con éxito!', 'success');
+                    appointmentForm.reset();
+                    loadAppointments();
+                } else {
+                    showMsg(data.error || 'Error al reservar', 'error');
+                }
+            } catch (err) {
+                showMsg('Error de red al intentar reservar', 'error');
+            }
+        });
+
+        function showMsg(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+        }
+
+        // Inicialización
+        loadServices();
+        loadAppointments();
+    </script>
+</body>
+</html>
