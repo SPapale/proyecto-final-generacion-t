@@ -3,7 +3,7 @@
 Sistema web full-stack de gestión y reserva de turnos online para servicios de estética y cuidado personal, desarrollado bajo estrictas reglas de negocio y arquitectura desacoplada.
 
 ##  Enlaces Públicos de Producción
-- **Frontend (Interfaz de Usuario)**: [Ver Aplicación en Vivo](https://TU-FRONTEND.netlify.app) *(Reemplazar con tu enlace de Netlify)*
+- **Frontend (Interfaz de Usuario)**: [Ver Aplicación en Vivo](https://soft-macaron-dcea5b.netlify.app/) *(Reemplazar con tu enlace de Netlify)*
 - **Backend (API REST)**: [https://turnero-backend-7wpl.onrender.com](https://turnero-backend-7wpl.onrender.com)
 - **Base de Datos**: PostgreSQL alojada en **Neon DB**.
 
